@@ -122,6 +122,7 @@ const ask = () => {
 	let suffixes = [...document.querySelectorAll(':checked')].map(x => x.id);
 	if(!suffixes.length) {
 		kanji.value = kana.value = ' ';
+		answer = '';
 		return;
 	} else if(suffixes.length > 1) {
 		suffixes = suffixes.filter(x => x != suffix);
