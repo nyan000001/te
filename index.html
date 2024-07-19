@@ -134,6 +134,7 @@ const ask = () => {
 ask();
 oninput = e => {
 	if(e.target == input) {
+		if(!input.value) return;
 		const index = input.selectionStart;
 		const a = convert(input.value.slice(0, index));
 		const b = convert(input.value.slice(index));
