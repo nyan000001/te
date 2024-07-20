@@ -4,16 +4,19 @@
 <title>て</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <style>
-* { font:14pt sans-serif; }
+* { font:14pt sans-serif; line-height:30px; }
 body, output, #input { width:170px; }
 body { margin:auto; }
+#kanji { margin-top:4px; }
+output { height:30px; }
 output, summary { text-align:center; }
 output, #input, label { display:block; }
-#input { border:1px solid #888; }
+#input { border:1px solid #888; line-height:25px; height:25px; }
 #input, details { margin:4px 0; }
 summary { font-size:10pt; }
 summary, label { cursor:pointer; }
 div { column-count:2; }
+label:last-child { column-span:all; }
 @media (prefers-color-scheme:dark) {
 	* { color:#fff; background:#000; }
 	input[type=checkbox] { filter:invert(100%); }
@@ -33,6 +36,7 @@ div { column-count:2; }
 <label><input type="checkbox" id="いて">いて</label>
 <label><input type="checkbox" id="いで">いで</label>
 <label><input type="checkbox" id="んで">んで</label>
+<label><input type="checkbox" id="irregular">irregular</label>
 </div>
 </details>
 <output id="score">0</output>
@@ -59,6 +63,9 @@ const verbs = {
 		['しぬ', '死ぬ'],
 		['くらむ', '眩む'], ['かなしむ', '悲しむ'], ['うらむ'], ['かすむ', '霞む'], ['こむ', '込む'], ['いたむ', '痛む'], ['かむ', '噛む'], ['はさむ', '挟む'], ['のむ', '飲む'], ['たのしむ', '楽しむ'], ['しずむ', '沈む'], ['たたむ', '畳む'], ['なじむ', '馴染む'], ['にらむ', '睨む'], ['すすむ', '進む'], ['つかむ'], ['このむ', '好む'], ['すむ', '住む'], ['たくらむ', '企む'], ['うむ'], ['よむ', '読む'], ['おしむ', '惜しむ'], ['たのむ', '頼む'], ['やすむ', '休む'], ['ぬすむ', '盗む'], ['ふむ', '踏む'], ['はげむ', '励む'], ['くるしむ', '苦しむ'], ['かこむ', '囲む'], ['くむ', '組む'], ['つつむ', '包む'],
 		['よろこぶ', '喜ぶ'], ['よぶ', '呼ぶ'], ['はこぶ', '運ぶ'], ['えらぶ', '選ぶ'], ['ころぶ', '転ぶ'], ['うかぶ'], ['ならぶ', '並ぶ'], ['とぶ', '飛ぶ'], ['まなぶ', '学ぶ'], ['あそぶ', '遊ぶ'], ['およぶ', '及ぶ'], ['むすぶ', '結ぶ']
+	],
+	'irregular': [
+		['する', , 'して'], ['くる', '来る', 'きて'], ['いく', '行く', 'いって']
 	]
 };
 function convert(text) {
@@ -112,8 +119,8 @@ const kanji = document.getElementById('kanji');
 const kana = document.getElementById('kana');
 const input = document.getElementById('input');
 let score = 0;
-let answer;
 let suffix;
+let answer;
 const random = arr => arr[~~(arr.length*Math.random())];
 const ask = () => {
 	input.disabled = false;
@@ -121,15 +128,14 @@ const ask = () => {
 	input.focus();
 	let suffixes = [...document.querySelectorAll(':checked')].map(x => x.id);
 	if(!suffixes.length) {
-		kanji.value = kana.value = ' ';
-		answer = '';
+		kanji.value = kana.value = '';
 		return;
-	} else if(suffixes.length > 1) {
-		suffixes = suffixes.filter(x => x != suffix);
 	}
 	suffix = random(suffixes);
-	[kana.value, kanji.value = ' '] = random(verbs[suffix]);
-	answer = kana.value.slice(0, -1)+suffix;
+	const verb = random(verbs[suffix].filter(x => x[0] != kana.value));
+	kana.value = verb[0];
+	kanji.value = verb[1] ?? '';
+	answer = verb[2] ?? kana.value.slice(0, -1)+suffix;
 }
 ask();
 oninput = e => {
@@ -145,14 +151,13 @@ oninput = e => {
 			input.disabled = true;
 			setTimeout(ask, 500);
 		}
-	} else if(kana.value == ' ' || (e.target.id == suffix && !e.target.checked)) {
+	} else if(!kana.value || (e.target.id == suffix && !e.target.checked)) {
 		ask();
-	} else {
-		input.focus();
 	}
 }
 onkeydown = e => {
-	if(e.key == 'Enter') {
+	input.focus();
+	if(e.key == 'Enter' && kana.value) {
 		input.value = answer;
 		input.disabled = true;
 		setTimeout(ask, 1800);
